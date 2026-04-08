@@ -1,6 +1,6 @@
 FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
 
-RUN apt-get update && apt-get install -y python3.11 python3-pip && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y python3.11 python3.11-venv python3-pip && rm -rf /var/lib/apt/lists/*
 RUN pip3 install uv
 
 WORKDIR /app

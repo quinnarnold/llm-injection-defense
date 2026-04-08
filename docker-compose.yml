@@ -35,6 +35,7 @@ services:
       - VLLM_URL=http://vllm:8000
       - CLASSIFIER_PATH=/app/models/classifier-trained
       - CHROMA_PATH=/app/data/chroma
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
     volumes:
       - ./data/chroma:/app/data/chroma
       - ./models/classifier-trained:/app/models/classifier-trained
