@@ -1,0 +1,24 @@
+__pycache__/
+*.pyc
+.env
+.DS_Store
+.venv/
+
+# data artifacts
+data/
+*.jsonl
+*.pdf
+
+# models
+models/
+
+# scraping scripts (not public)
+src/rag/scraper.py
+src/rag/pdf_extractor.py
+tests/test_scraper.py
+
+
+*.egg-info/
+dist/
+.ruff_cache/
+.pytest_cache/

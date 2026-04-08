@@ -1,0 +1,42 @@
+services:
+  vllm:
+    image: vllm/vllm-openai:latest
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - ${HF_HOME:-~/.cache/huggingface}:/root/.cache/huggingface
+      - ./models/qwen3-32b-bryant-lora:/lora/qwen3-32b-bryant-lora
+    command: >
+      --model Qwen/Qwen3-32B
+      --enable-lora
+      --lora-modules bryant=/lora/qwen3-32b-bryant-lora
+      --quantization bitsandbytes
+      --load-format bitsandbytes
+      --served-model-name qwen3-32b-bryant
+      --max-model-len 8192
+      --gpu-memory-utilization 0.85
+      --port 8000
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 40
+      start_period: 120s
+
+  app:
+    build: .
+    depends_on:
+      vllm:
+        condition: service_healthy
+    environment:
+      - VLLM_URL=http://vllm:8000
+      - CLASSIFIER_PATH=/app/models/classifier-trained
+      - CHROMA_PATH=/app/data/chroma
+    volumes:
+      - ./data/chroma:/app/data/chroma
+      - ./models/classifier-trained:/app/models/classifier-trained
+    ports:
+      - "8080:8080"
