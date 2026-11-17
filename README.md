@@ -1,8 +1,12 @@
 # Ask Tupper
 
-A hardened campus chatbot for Bryant University, built in response to a security audit that found the existing production chatbot was vulnerable to prompt injection. Ask Tupper replaces that system with a 32B-parameter open-weight model defended by a 6-layer injection protection pipeline, reducing attack success rate to 0% across 15 tested attack vectors.
+A campus chatbot project for Bryant University using Qwen3-32B, QLoRA
+fine-tuning, hybrid retrieval, and layered prompt-injection defenses.
 
-The model (Qwen3-32B) was fine-tuned with QLoRA on a single 32GB consumer GPU in 90 minutes, trained on 3,421 examples to shape refusal behavior without degrading factual knowledge. A hybrid RAG pipeline over 530 scraped Bryant University documents grounds responses in real campus data, improving factual accuracy from 60% to 74%. A custom-trained RoBERTa injection classifier provides a dedicated first line of defense at 95.3% recall.
+The project includes a RoBERTa injection classifier, retrieval over campus
+documents, input and output guards, and a vLLM-backed API. The evaluations below
+report results on the project's test sets; they do not establish general
+resistance to prompt injection.
 
 ## Architecture
 
@@ -110,7 +114,7 @@ No single defense is reliable. Base Qwen3-32B leaked system instructions on 3/15
 2. **RoBERTa classifier** is a dedicated 125M-param model trained specifically on injection patterns. It catches structured attacks that look nothing like normal questions. Runs in ~2ms.
 3. **LLM Guard (DeBERTa)** provides a second opinion from a different model architecture trained on different data. Defense in depth.
 4. **RAG** grounds the model in real Bryant data, reducing hallucination and making off-topic responses less likely.
-5. **Fine-tuned LLM** has learned to refuse attacks as a behavioral pattern, not just a system prompt instruction. This is the layer that took ASR from 20% to 0%.
+5. **Fine-tuned LLM** has learned to refuse attacks as a behavioral pattern, not just a system prompt instruction. The reported fine-tuned pipeline blocked all 15 tested payloads.
 6. **Output guards** catch leaks that slip through everything else: code generation, email/phone extraction, regex patterns.
 
 ### Why RoBERTa over regex?
@@ -119,7 +123,7 @@ Regex catches known patterns. RoBERTa generalizes to novel attacks. The classifi
 
 ### Why QLoRA over full fine-tuning?
 
-Qwen3-32B has 32.9 billion parameters. Full fine-tuning would require ~256GB VRAM (8x A100s). QLoRA trains only 134M parameters (0.41%) using 4-bit quantization, fitting on a single 32GB GPU. The before/after comparison shows this is sufficient to shape the model's refusal behavior without degrading its knowledge.
+Qwen3-32B has 32.9 billion parameters. Full fine-tuning would require ~256GB VRAM (8x A100s). QLoRA trains only 134M parameters (0.41%) using 4-bit quantization, fitting on a single 32GB GPU. The reported evaluation compares refusal behavior and campus-question responses under this setup.
 
 ### Why Chroma + BM25 hybrid RAG?
 
